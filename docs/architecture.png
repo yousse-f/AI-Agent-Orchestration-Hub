@@ -1,0 +1,21 @@
+# Placeholder per diagramma architettura sistema
+
+# TODO: Creare diagramma che mostri:
+# 1. Flusso richiesta utente -> API -> Orchestratore
+# 2. Esecuzione agenti (Data Analyst, Researcher, Copywriter) 
+# 3. Memoria condivisa Redis per context sharing
+# 4. Aggregazione risultati e generazione report finale
+# 5. Deployment containerizzato con Docker Compose
+
+# Tools suggeriti per creazione:
+# - draw.io (diagrammi di flusso)
+# - Lucidchart (diagrammi architetturali)
+# - PlantUML (diagrammi come codice)
+# - Mermaid (diagrammi in Markdown)
+
+# Struttura proposta:
+# [User Request] -> [FastAPI] -> [Orchestrator] -> [Agents (parallel/sequential)]
+#                                      |
+# [Redis Memory] <-> [Context Sharing] <-> [Data Analyst, Researcher, Copywriter]
+#                                      |
+# [Result Aggregation] -> [Final Report] -> [JSON Response]

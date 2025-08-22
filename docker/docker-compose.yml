@@ -1,0 +1,84 @@
+# Docker Compose per AI Agent Orchestration Hub
+# Orchestrazione completa: API, Redis, monitoring
+
+version: '3.8'
+
+services:
+  # Redis - Memory condivisa per gli agenti
+  redis:
+    image: redis:7-alpine
+    container_name: ai-agents-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ai-agents-network
+
+  # API Principal - Sistema multi-agent orchestrato
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ai-agents-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Database/Cache
+      - REDIS_URL=redis://redis:6379/0
+      
+      # AI/LLM Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-ai-agents-hub}
+      
+      # Application Settings
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      
+      # Agent Configuration
+      - AGENT_TIMEOUT=${AGENT_TIMEOUT:-300}
+      - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
+      
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ai-agents-network
+    volumes:
+      # TODO: Mount logs volume for persistence
+      - ./logs:/app/logs
+
+  # TODO: Monitoring stack (Prometheus, Grafana)
+  # monitoring:
+  #   image: prom/prometheus
+  #   ports:
+  #     - "9090:9090"
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  ai-agents-network:
+    driver: bridge
+
+# TODO: Aggiungere secrets management per production
+# TODO: Configurare reverse proxy (Nginx) per production
+# TODO: Aggiungere log aggregation (ELK stack)
+# TODO: Setup monitoring e alerting
